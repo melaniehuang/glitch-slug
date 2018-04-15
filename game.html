@@ -14,12 +14,12 @@
 		var PLAYER_HEIGHT = 64;
 		var PLAYER_NUM_FRAMES_PER_ROW = 2;
 		var PLAYER_NUM_ANIMATON_FRAMES = 2;
-		var PLAYER_ANIMATION_SPEED = 10;
+		var PLAYER_ANIMATION_SPEED = 8;
 		var GROUND_Y = 360;
 		var PLAYER_Y_ACCELERATION = 1;
 		var PLAYER_JUMP_SPEED = 10;
 		var SPACE_KEYCODE = 32;
-		var PLAYER_X_SPEED = 2;
+		var PLAYER_X_SPEED = 6;
 		var BACKGROUND_WIDTH = 1200;
 
 		// SETUP: Everythin we need to 'setup' before out game can begin
@@ -37,6 +37,23 @@
 
 		var bgImage = new Image();
 		bgImage.src = 'assets/pattern-bg.jpg';
+		
+		var bushImage = new Image();
+		bushImage.src = 'assets/bush.png';
+		
+		var bushes = [{ 
+			x : 600, 
+			y : 64
+		  },{ 
+			x : 750, 
+			y : 32
+		  },{ 
+			x : 1050, 
+			y : 64
+		  },{
+			x : 1200, 
+			y : 32
+		 }];
 
 		var playerImage = new Image();
 		playerImage.src = 'assets/slug.png';
@@ -102,14 +119,16 @@
 				  playerFrameNum = 0;
 				}
 			}
-
+			//Update bushes
+			for (var i=0; i < bushes.length; i++){
+			  if ((bushes[i].x - cameraX) < -CANVAS_WIDTH){
+			  	bushes[i].x += (2*CANVAS_WIDTH)+150;
+			  }
+			}
 		}
 
 		// UPDATING: Anything needed to keep track of what is happening, positions and scores etc.
 		function draw(){
-			//Draw the sky
-			c.fillStyle = 'Yellow';
-			c.fillRect(0,0,CANVAS_WIDTH, GROUND_Y);
 			
 			//Draw background repeating
 			var backgroundX = - (cameraX % BACKGROUND_WIDTH);
@@ -119,7 +138,10 @@
 			//Draw the ground
 			c.fillStyle = 'Black';
 			c.fillRect(0,GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT-GROUND_Y);
-			
+			for (var i = 0; i < bushes.length; i++){
+				c.drawImage(bushImage, bushes[i].x - cameraX, GROUND_Y - bushes[i].y - cameraY);
+			}
+				
 			//Draw player
 			var playerSpriteSheetRow = Math.floor(playerFrameNum / PLAYER_NUM_FRAMES_PER_ROW);
 			var playerSpriteSheetColumn = playerFrameNum % PLAYER_NUM_FRAMES_PER_ROW;
