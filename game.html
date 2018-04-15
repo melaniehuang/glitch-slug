@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Endless Runner</title>
+	</head>
+	<body>
+		<script>
+		//Coder Dojo <Nano> Create with code: Make your own game
+
+		// CONSTANTS: These variables will not change
+		var CANVAS_WIDTH = 1200;
+		var CANVAS_HEIGHT = 400;
+		var PLAYER_WIDTH = 64;
+		var PLAYER_HEIGHT = 64;
+		var PLAYER_NUM_FRAMES_PER_ROW = 2;
+		var PLAYER_NUM_ANIMATON_FRAMES = 2;
+		var PLAYER_ANIMATION_SPEED = 10;
+		var GROUND_Y = 360;
+		var PLAYER_Y_ACCELERATION = 1;
+		var PLAYER_JUMP_SPEED = 10;
+		var SPACE_KEYCODE = 32;
+		var PLAYER_X_SPEED = 2;
+		var BACKGROUND_WIDTH = 1200;
+
+		// SETUP: Everythin we need to 'setup' before out game can begin
+		var playerYSpeed = 0.01;
+		var spaceKeyIsPressed = false;
+		var playerFrameNum = 0;
+		var playerIsInTheAir = false;
+		var gameFrameCounter = 0;
+		
+		var canvas = document.createElement('canvas');
+		var c = canvas.getContext('2d');
+		canvas.width = CANVAS_WIDTH;
+		canvas.height = CANVAS_HEIGHT;
+		document.body.appendChild(canvas);
+
+		var bgImage = new Image();
+		bgImage.src = 'assets/pattern-bg.jpg';
+
+		var playerImage = new Image();
+		playerImage.src = 'assets/slug.png';
+
+		var cameraX = 0;
+		var cameraY = 0;
+
+		var playerX = CANVAS_WIDTH/2;
+		var playerY = 0;
+		var playerYSpeed = 0;
+
+		window.addEventListener('keydown', onKeyDown);
+		window.addEventListener('keyup', onKeyUp);
+		window.addEventListener('load', start);
+
+		function start(){
+		  window.requestAnimationFrame(mainLoop);
+		}
+
+		// MAIN LOOP: Handling keyboard input , updating and drawing.
+
+		function mainLoop(){
+		  update();
+		  draw();
+		  window.requestAnimationFrame(mainLoop);
+		}
+
+		// PLAYER INPUT: Callbacks
+		function onKeyDown(event){
+		  if (event.keyCode === SPACE_KEYCODE){
+		  	spaceKeyIsPressed = true;
+		  	console.log(spaceKeyIsPressed);
+		  }
+		}
+
+		function onKeyUp(event){
+		  if (event.keyCode === SPACE_KEYCODE){
+		  	spaceKeyIsPressed = false;
+		  	console.log(spaceKeyIsPressed);
+		  }
+		}
+
+		function update(){
+			gameFrameCounter = gameFrameCounter + 1;
+			playerY = playerY + playerYSpeed;
+			playerYSpeed = playerYSpeed + PLAYER_Y_ACCELERATION;
+			playerX = playerX + PLAYER_X_SPEED;
+
+			if (playerY > (GROUND_Y - PLAYER_HEIGHT)){
+			    playerY = GROUND_Y - PLAYER_HEIGHT;
+			    playerYSpeed = 0;
+			    playerIsInTheAir = false;
+			}
+
+			if (spaceKeyIsPressed && !playerIsInTheAir){
+				playerYSpeed = -PLAYER_JUMP_SPEED;
+				playerIsInTheAir = true;
+			}
+
+			if ((gameFrameCounter % PLAYER_ANIMATION_SPEED)===0) {
+				playerFrameNum = playerFrameNum + 1;
+				if (playerFrameNum >= PLAYER_NUM_ANIMATON_FRAMES){
+				  playerFrameNum = 0;
+				}
+			}
+
+		}
+
+		// UPDATING: Anything needed to keep track of what is happening, positions and scores etc.
+		function draw(){
+			//Draw the sky
+			c.fillStyle = 'Yellow';
+			c.fillRect(0,0,CANVAS_WIDTH, GROUND_Y);
+			
+			//Draw background repeating
+			var backgroundX = - (cameraX % BACKGROUND_WIDTH);
+			c.drawImage(bgImage, backgroundX, 0);
+			c.drawImage(bgImage, backgroundX+BACKGROUND_WIDTH, 0);
+
+			//Draw the ground
+			c.fillStyle = 'Black';
+			c.fillRect(0,GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT-GROUND_Y);
+			
+			//Draw player
+			var playerSpriteSheetRow = Math.floor(playerFrameNum / PLAYER_NUM_FRAMES_PER_ROW);
+			var playerSpriteSheetColumn = playerFrameNum % PLAYER_NUM_FRAMES_PER_ROW;
+			var playerSpriteSheetX = playerSpriteSheetColumn * PLAYER_WIDTH;
+			var playerSpriteSheetY = playerSpriteSheetRow * PLAYER_HEIGHT;
+			c.drawImage(playerImage, playerSpriteSheetX, playerSpriteSheetY, PLAYER_WIDTH, PLAYER_HEIGHT, playerX - cameraX, playerY - cameraY, PLAYER_HEIGHT, PLAYER_WIDTH);
+
+			cameraX = playerX - 150;
+		}
+
+		// DRAWING: After everything is calculated, draw in browser
+		</script>
+	</body>
+</html>
