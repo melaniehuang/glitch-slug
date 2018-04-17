@@ -10,16 +10,23 @@
 		// CONSTANTS: These variables will not change
 		var CANVAS_WIDTH = 1200;
 		var CANVAS_HEIGHT = 400;
+		
 		var PLAYER_WIDTH = 64;
 		var PLAYER_HEIGHT = 64;
-		var PLAYER_NUM_FRAMES_PER_ROW = 2;
 		var PLAYER_NUM_ANIMATON_FRAMES = 2;
 		var PLAYER_ANIMATION_SPEED = 8;
-		var GROUND_Y = 360;
+		var PLAYER_X_SPEED = 6;
 		var PLAYER_Y_ACCELERATION = 1;
 		var PLAYER_JUMP_SPEED = 10;
+
+		var ENEMY_WIDTH = 64;
+		var ENEMY_HEIGHT = 64;
+		var ENEMY_NUM_ANIMATON_FRAMES = 2;
+		var ENEMY_ANIMATION_SPEED = 8;
+		var ENEMY_X_SPEED = 2;
+
+		var GROUND_Y = 360;
 		var SPACE_KEYCODE = 32;
-		var PLAYER_X_SPEED = 6;
 		var BACKGROUND_WIDTH = 1200;
 
 		// SETUP: Everythin we need to 'setup' before out game can begin
@@ -40,23 +47,39 @@
 		
 		var bushImage = new Image();
 		bushImage.src = 'assets/bush.png';
-		
-		var bushes = [{ 
-			x : 600, 
-			y : 64
-		  },{ 
-			x : 750, 
-			y : 32
-		  },{ 
-			x : 1050, 
-			y : 64
-		  },{
-			x : 1200, 
-			y : 32
-		 }];
+		var bushes = generateBushes();
 
 		var playerImage = new Image();
-		playerImage.src = 'assets/slug.png';
+		playerImage.src = 'assets/slug.png';		
+		var playerSpriteSheet = {
+		  numFramePerRow: 2,
+		  spriteWidth: PLAYER_WIDTH,
+		  spriteHeight: PLAYER_HEIGHT,
+		  image:playerImage
+		}
+		
+		var enemyImage = new Image();
+		enemyImage.src = 'assets/evil-slug.png';		
+		var enemySpriteSheet = {
+		  numFramePerRow:2,
+		  spriteWidth: ENEMY_WIDTH,
+		  spriteHeight: ENEMY_HEIGHT,
+		  image:enemyImage
+		}
+
+		var enemyData = [{
+		  x:2200,
+		  y:GROUND_Y-ENEMY_HEIGHT,
+		  frameNum: 0
+		},{
+		  x:1800,
+		  y:GROUND_Y-ENEMY_HEIGHT,
+		  frameNum: 0
+		},{
+		  x:1600,
+		  y:GROUND_Y-ENEMY_HEIGHT,
+		  frameNum: 0
+		}];
 
 		var cameraX = 0;
 		var cameraY = 0;
@@ -73,6 +96,17 @@
 		  window.requestAnimationFrame(mainLoop);
 		}
 
+		function generateBushes(){
+		  var generatedBushData = [];
+		  for (var i = 0; i < 6; i++){
+		    generatedBushData.push({
+		      x: 200 + Math.floor(Math.random() * CANVAS_WIDTH),
+		      y: 64-Math.floor(Math.random() * 32),
+		      image:bushImage
+		    });
+		  }
+		  return generatedBushData;
+		};
 		// MAIN LOOP: Handling keyboard input , updating and drawing.
 
 		function mainLoop(){
@@ -125,6 +159,21 @@
 			  	bushes[i].x += (2*CANVAS_WIDTH)+150;
 			  }
 			}
+
+			updateEnemies();
+		}
+
+		function updateEnemies(){
+		  for (var i =0; i < enemyData.length; i++){
+		  	enemyData[i].x -= ENEMY_X_SPEED;
+
+		    if ((gameFrameCounter % ENEMY_ANIMATION_SPEED) === 0){
+		      enemyData[i].frameNum = enemyData[i].frameNum + 1;
+		      if (enemyData[i].frameNum >= ENEMY_NUM_ANIMATON_FRAMES) {
+		        enemyData[i].frameNum = 0;
+		      }
+		    }
+		  }
 		}
 
 		// UPDATING: Anything needed to keep track of what is happening, positions and scores etc.
@@ -138,18 +187,34 @@
 			//Draw the ground
 			c.fillStyle = 'Black';
 			c.fillRect(0,GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT-GROUND_Y);
+
+			//Draw the bushes
 			for (var i = 0; i < bushes.length; i++){
 				c.drawImage(bushImage, bushes[i].x - cameraX, GROUND_Y - bushes[i].y - cameraY);
 			}
-				
+			
+			//Draw enemy
+			for (var i = 0; i < enemyData.length; i++){
+			  drawAnimatedSprite(enemyData[i].x - cameraX, enemyData[i].y - cameraY, enemyData[i].frameNum, enemySpriteSheet);
+			}
+
 			//Draw player
-			var playerSpriteSheetRow = Math.floor(playerFrameNum / PLAYER_NUM_FRAMES_PER_ROW);
-			var playerSpriteSheetColumn = playerFrameNum % PLAYER_NUM_FRAMES_PER_ROW;
-			var playerSpriteSheetX = playerSpriteSheetColumn * PLAYER_WIDTH;
-			var playerSpriteSheetY = playerSpriteSheetRow * PLAYER_HEIGHT;
-			c.drawImage(playerImage, playerSpriteSheetX, playerSpriteSheetY, PLAYER_WIDTH, PLAYER_HEIGHT, playerX - cameraX, playerY - cameraY, PLAYER_HEIGHT, PLAYER_WIDTH);
+			drawAnimatedSprite(playerX - cameraX, playerY - cameraY, playerFrameNum, playerSpriteSheet);
 
 			cameraX = playerX - 150;
+
+			function drawAnimatedSprite(screenX, screenY, frameNum, spriteSheet){
+			  var spriteSheetRow = Math.floor(frameNum/spriteSheet.numFramePerRow);
+			  var spriteSheetColumn = frameNum % spriteSheet.numFramePerRow;
+			  var spriteSheetX = spriteSheetColumn * spriteSheet.spriteWidth;
+			  var spriteSheetY = spriteSheetRow * spriteSheet.spriteHeight;
+			  c.drawImage(
+			    spriteSheet.image,
+			    spriteSheetX, spriteSheetY,
+			    spriteSheet.spriteWidth, spriteSheet.spriteHeight, screenX, screenY,
+			    spriteSheet.spriteWidth, spriteSheet.spriteHeight
+			  );
+			}
 		}
 
 		// DRAWING: After everything is calculated, draw in browser
